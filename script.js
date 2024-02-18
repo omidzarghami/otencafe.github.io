@@ -10,3 +10,7 @@ const storedTheme = localStorage.getItem('darkMode');
 if (storedTheme === 'true' || (storedTheme === null && prefersDarkScheme.matches)) {
     document.body.classList.add('dark-mode');
 }
+
+// document.querySelector('.hamburger-menu').addEventListener('click', function() {
+//     document.querySelector('.menu').classList.toggle('active');
+// });
