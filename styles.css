@@ -268,7 +268,12 @@ nav {
     background-color: #333;
     margin: 3px;
 }
-
+/* .ham-menu-close{
+    width: 30px;
+    height: 3px;
+    background-color: #333;
+    margin: 3px;
+} */
 @media (max-width: 768px) {
     .ham-menu {
         display: flex;
