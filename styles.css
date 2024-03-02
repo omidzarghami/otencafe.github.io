@@ -152,7 +152,7 @@ justify-content: column;   }
     }
 }
 
-/* .image-container {
+ .image-container {
     cursor: pointer;
     overflow: hidden;
     border-radius: 50%;
@@ -166,7 +166,7 @@ justify-content: column;   }
     object-fit: cover;
 }
 
-#enlarged-image {
+/* #enlarged-image {
     position: fixed;
     top: 50%;
     left: 50%;
