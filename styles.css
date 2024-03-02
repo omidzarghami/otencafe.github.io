@@ -152,7 +152,7 @@ justify-content: column;   }
     }
 }
 
-.image-container {
+/* .image-container {
     cursor: pointer;
     overflow: hidden;
     border-radius: 50%;
@@ -175,4 +175,4 @@ justify-content: column;   }
     max-height: 90%;
     display: none;
     z-index: 9999;
-    border-radius: 10px;}
+    border-radius: 10px;} */
