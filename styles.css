@@ -4,9 +4,16 @@
     padding: 0;
     box-sizing: border-box;
 }
+@font-face {
+    font-family: IRANSansX;
+    src: url("./font/IRANSansX-Regular.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap
+}
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: "IRANSansX", sans-serif;
     transition: background-color 0.3s ease;
 }
 
