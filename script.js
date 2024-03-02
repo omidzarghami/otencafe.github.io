@@ -17,11 +17,11 @@ document.querySelector('.hamburger-menu').addEventListener('click', function() {
 
 
 
-document.querySelector('.image-container').addEventListener('click', function() {
-    document.getElementById('enlarged-image').src = this.querySelector('.rounded-image').src;
-    document.getElementById('enlarged-image').style.display = 'block';
-});
+// document.querySelector('.image-container').addEventListener('click', function() {
+//     document.getElementById('enlarged-image').src = this.querySelector('.rounded-image').src;
+//     document.getElementById('enlarged-image').style.display = 'block';
+// });
 
-document.getElementById('enlarged-image').addEventListener('click', function() {
-    this.style.display = 'none';
-});
+// document.getElementById('enlarged-image').addEventListener('click', function() {
+//     this.style.display = 'none';
+// });
