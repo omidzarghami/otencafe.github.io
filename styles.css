@@ -139,7 +139,7 @@ nav {
 }
 
 @media (max-width: 768px) {
-    nav {
+    .ham-menu {
 display: flex;
 justify-content: column;   }
     .hamburger-menu {
