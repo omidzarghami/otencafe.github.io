@@ -1,4 +1,13 @@
+
+    :root {
+        --dark-brown: #592F15;
+        --light-brown: #B47C51;
+        --cream: #F7E7D1;
+        --olive-green: #7D8F69;
+      }
+
 /* Reset default margin and padding */
+
 * {
 
     html,
@@ -144,6 +153,7 @@
 body {
     font-family: "IRANSansX", sans-serif;
     transition: background-color 0.3s ease;
+    background-color: var(--olive-green);
 }
 
 .light-mode {
@@ -165,8 +175,8 @@ body {
 }
 
 header {
-    background-color: #f2f2f2;
-    background: linear-gradient(0deg, rgba(250, 174, 117, 0.5) 0%, #fff 100%);
+    background:var(--olive-green);
+    padding: 1rem;
 }
 
 header h1 {
@@ -211,8 +221,7 @@ nav {
 
 .menu-section {
     padding: 1rem 0;
-    background-color: #e9e9e9;
-    background: linear-gradient(193deg, rgba(189, 93, 19, 0.5) 0%, rgba(250, 174, 117, 0.5) 100%);
+    background-color: var(--light-brown);
     border-radius: 10px;
 }
 
