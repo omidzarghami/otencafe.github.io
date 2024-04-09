@@ -11,9 +11,9 @@
 //     document.body.classList.add('dark-mode');
 // }
 
-document.querySelector('.hamburger-menu').addEventListener('click', function() {
-    document.querySelector('.menu').classList.toggle('active');
-});
+// document.querySelector('.hamburger-menu').addEventListener('click', function() {
+//     document.querySelector('.menu').classList.toggle('active');
+// });
 
 
 
