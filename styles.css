@@ -223,6 +223,7 @@ nav {
     padding: 1rem 0;
     background-color: var(--light-brown);
     border-radius: 10px;
+    background-image: url(./images/main.png);
 }
 
 .menu-items {
@@ -328,6 +329,21 @@ nav {
     object-fit: cover;
 }
 
+/* .menu-section1 {
+    padding: 1rem 0;
+    background-image: url(./.jpg);
+    background-repeat: repeat;
+    border-radius: 10px;
+}
+.menu-section2{
+    background-color: var(--dark-brown);
+}
+.menu-section3{
+    background-color: var(--cream);
+}
+.menu-section4{
+    background-color: var(--olive-green);
+} */
 /* #enlarged-image {
     position: fixed;
     top: 50%;
