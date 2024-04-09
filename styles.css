@@ -214,6 +214,7 @@ nav {
     text-decoration: none;
     color: #333;
     font-weight: bold;
+    padding: 10px;
 }
 
 .menu a.dark-mode {
