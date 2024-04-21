@@ -143,15 +143,15 @@
 }
 
 @font-face {
-    font-family: 'IRANSansX';
-    src: url("./font/IRANSansX-Regular.woff2") format("woff2");
+    font-family: 'iranyekan';
+    src: url("./font/iranyekanwebregularfanum.woff") format("woff");
     font-weight: normal;
     font-style: normal;
     font-display: swap
 }
 
 body {
-    font-family: "IRANSansX", sans-serif;
+    font-family: "iranyekan", sans-serif;
     transition: background-color 0.3s ease;
     background-color: var(--olive-green);
 }
