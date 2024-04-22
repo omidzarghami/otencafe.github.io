@@ -214,7 +214,6 @@ nav {
     display: inline-block;
     margin-right: 20px;
     width:100%;
-    
 }
 
 .menu li:last-child {
@@ -226,7 +225,8 @@ nav {
     color: #333;
     font-weight: bold;
     padding: 10px;
-    width:100%
+    width:100%;
+    display:block;
 }
 
 .menu a.dark-mode {
