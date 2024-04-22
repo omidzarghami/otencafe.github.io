@@ -213,6 +213,7 @@ nav {
 .menu li {
     display: inline-block;
     margin-right: 20px;
+    width:100%;
     
 }
 
