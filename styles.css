@@ -121,6 +121,7 @@
     ol,
     ul {
         list-style: none;
+        width: 100%;
     }
 
     blockquote,
@@ -212,6 +213,7 @@ nav {
 .menu li {
     display: inline-block;
     margin-right: 20px;
+    
 }
 
 .menu li:last-child {
@@ -223,6 +225,7 @@ nav {
     color: #333;
     font-weight: bold;
     padding: 10px;
+    width:100%
 }
 
 .menu a.dark-mode {
