@@ -208,6 +208,7 @@ nav {
 
 .menu {
     list-style: none;
+    display:flex;
 }
 
 .menu li {
