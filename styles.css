@@ -380,6 +380,7 @@ p {
     border-radius: 10px;} */
 
 #myBtn {
+    font-family:'iranyekan';
     display: none;
     position: fixed;
     bottom: 20px;
