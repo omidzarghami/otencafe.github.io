@@ -151,13 +151,6 @@
     font-display: swap
 }
 
-@font-face {
-    font-family: 'fontawesome';
-    src: url("./font/fontawesome5free-solid.woff2") format("woff2");
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap
-}
 
 body {
     font-family: "iranyekan", sans-serif;
@@ -292,7 +285,6 @@ nav {
 }
 .hamburger-menu .icon{
     margin-left: 10px;
-\
 }
 
 .hamburger-menu-line {
@@ -381,3 +373,4 @@ p{
     display: none;
     z-index: 9999;
     border-radius: 10px;} */
+    
