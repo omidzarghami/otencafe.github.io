@@ -312,6 +312,7 @@ nav {
 
     .hamburger-menu {
         display: flex;
+        margin-bottom: 10px;
     }
 
     .menu {
