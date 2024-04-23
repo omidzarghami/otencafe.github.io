@@ -290,6 +290,9 @@ nav {
     flex-direction: column;
     cursor: pointer;
 }
+.hamburger-menu svg{
+    margin-left: 10px;
+}
 
 .hamburger-menu-line {
     width: 30px;
