@@ -300,6 +300,10 @@ nav {
     background-color: #333;
     margin: 3px;
 }
+
+img.icon{
+    margin-left: 15px;
+}
 /* .ham-menu-close{
     width: 30px;
     height: 3px;
