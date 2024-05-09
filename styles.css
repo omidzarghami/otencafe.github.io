@@ -398,6 +398,6 @@ p {
 #warning{
     background-color: white;
     padding: 1rem;
-    color: #592F15;
+    color: var(--dark-brown);
     border-radius: 5px;
 }
