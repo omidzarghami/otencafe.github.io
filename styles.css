@@ -142,7 +142,9 @@
         border-spacing: 0;
     }
 }
-
+html {
+    scroll-behavior: smooth;
+  }
 @font-face {
     font-family: 'iranyekan';
     src: url("./font/iranyekanwebregularfanum.woff") format("woff");
