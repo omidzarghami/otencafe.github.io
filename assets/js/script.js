@@ -13,6 +13,21 @@
 
 document.querySelector('.hamburger-menu').addEventListener('click', function () {
     document.querySelector('.menu').classList.toggle('active');
+    // document.querySelector(".hamburger-menu").style.display = "none";
+    // document.querySelector(".x").style.display = "block";
+
+    // function toggleElement(elementId) {
+    //     var element = document.querySelector(".hamburger-menu");
+    //     // اگر المان پنهان است، نمایش آن را تغییر دهید
+    //     if (element.style.display === "none") {
+    //         element.style.display = "block"; // یا هر نوع نمایش مطلوب دیگر
+    //     } else {
+    //         // در غیر این صورت، المان را پنهان کنید
+    //         element.style.display = "none";
+    //     }
+    // }
+
+
 });
 
 
