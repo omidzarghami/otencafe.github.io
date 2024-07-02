@@ -26,7 +26,11 @@ body {font-family: "iranyekan", sans-serif;transition: background-color 0.3s eas
     display: flex;
     flex-direction: column;
 }
-
+.logo {
+    width: 120px;
+    position: absolute;
+    right: calc(50% - 60px);
+}
 header {
     background: var(--olive-green);
     padding: 1rem;
