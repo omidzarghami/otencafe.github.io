@@ -292,3 +292,7 @@ p {
     transform: rotate(-45deg);
   }
 }
+@media only screen and (max-width: 768px) {
+.container-logo{display: flex;
+                flex-direction: column;}
+  }
