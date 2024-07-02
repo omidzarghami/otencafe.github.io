@@ -25,11 +25,14 @@ body {font-family: "iranyekan", sans-serif;transition: background-color 0.3s eas
     max-width: 1200px;
     display: flex;
     flex-direction: column;
+
 }
 .logo {
     width: 120px;
     position: absolute;
-    right: calc(50% - 60px);
+    right: calc(50% - 1rem);
+    mix-blend-mode: multiply;
+    top:0;
 }
 header {
     background: var(--olive-green);
