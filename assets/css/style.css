@@ -36,6 +36,7 @@ body {font-family: "iranyekan", sans-serif;transition: background-color 0.3s eas
   .logo img {
     max-width: 150px; /* یا اندازه مورد نظر شما */
     height: auto;
+    mix-blend-mode: multiply;
   }
   
   @media (max-width: 768px) {
