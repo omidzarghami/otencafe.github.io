@@ -194,6 +194,9 @@ img.icon {
         display: flex;
         flex-direction: column;
     }
+    .hamburger-menu-line.dark-mode {
+        color: #fff;
+    }
 
     .hamburger-menu {
         display: flex;
