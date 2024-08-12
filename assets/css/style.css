@@ -140,9 +140,15 @@ nav {
     color: #fff;
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
 }
+.dark-mode .menu-item span{color: #fff;
+
+}
 
 .dark-mode header {
     background-color: #333;
+    color: #fff;
+}
+.dark-mode header a{
     color: #fff;
 }
 
@@ -187,6 +193,9 @@ img.icon {
     .ham-menu {
         display: flex;
         flex-direction: column;
+    }
+    .hamburger-menu-line.dark-mode {
+        color: #fff;
     }
 
     .hamburger-menu {
