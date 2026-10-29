@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,13 +23,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  LogOut,
   Save,
   Plus,
   Pencil,
   Trash2,
   Search,
-  ExternalLink,
   RotateCcw,
   ChevronDown,
   ChevronLeft,
@@ -44,6 +41,7 @@ import {
   saveAdminDraft,
   savePublishedOverrides,
 } from "@/lib/admin-draft-storage";
+import { AdminSidebar } from "@/components/admin-sidebar";
 
 interface MenuItem {
   id: string;
@@ -69,6 +67,8 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [status, setStatus] = useState<{ tone: StatusTone; message: string } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
   const [showAddItemDialog, setShowAddItemDialog] = useState<string | null>(null);
   const [showEditSectionNameDialog, setShowEditSectionNameDialog] = useState<string | null>(null);
@@ -480,6 +480,28 @@ export default function DashboardPage() {
     router.push("/admin/login");
   };
 
+  const scrollToTarget = (targetId: string) => {
+    const element = document.getElementById(targetId);
+    if (!element) return;
+
+    if (targetId.startsWith("admin-section-")) {
+      const sectionId = targetId.replace("admin-section-", "");
+      setActiveSectionId(sectionId);
+      setCollapsedSections((prev) => ({ ...prev, [sectionId]: false }));
+    } else {
+      setActiveSectionId(null);
+    }
+
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const focusSearch = () => {
+    scrollToTarget("admin-menu");
+    window.setTimeout(() => {
+      document.getElementById("admin-search")?.focus();
+    }, 250);
+  };
+
   const groupedItems = sections.reduce(
     (acc, section) => {
       acc[section.id] = {
@@ -532,6 +554,20 @@ export default function DashboardPage() {
     );
   }
 
+  const sidebarSections = Object.entries(groupedItems).map(([sectionId, section]) => {
+    const hasChanges =
+      !!nameChanges[sectionId] ||
+      section.items.some(
+        (item) => priceChanges[item.id] !== undefined || !!nameChanges[item.id]
+      );
+    return {
+      id: sectionId,
+      title: section.title,
+      itemCount: section.items.length,
+      hasChanges,
+    };
+  });
+
   return (
     <div
       className="min-h-screen p-4 relative overflow-hidden"
@@ -542,26 +578,25 @@ export default function DashboardPage() {
     >
       <div className="absolute inset-0 bg-background/95 backdrop-blur-sm"></div>
       <div className="relative z-10">
-        <div className="container mx-auto max-w-7xl pb-28">
+        <div className="mx-auto flex max-w-7xl gap-4 pb-28">
+          <AdminSidebar
+            sections={sidebarSections}
+            activeSectionId={activeSectionId}
+            unsavedCount={unsavedCount}
+            onNavigate={scrollToTarget}
+            onAddSection={() => setShowAddSectionDialog(true)}
+            onFocusSearch={focusSearch}
+            onLogout={handleLogout}
+            mobileOpen={sidebarOpen}
+            onMobileOpenChange={setSidebarOpen}
+          />
+
+          <div className="min-w-0 flex-1 pt-12 lg:pt-0">
           <Card className="mb-6">
             <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="text-3xl font-bold">پنل مدیریت کافه اوتن</CardTitle>
-                  <CardDescription>ویرایش سریع قیمت‌ها، نام‌ها و پیام مالیات</CardDescription>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" asChild>
-                    <Link href="/" target="_blank">
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                      مشاهده سایت
-                    </Link>
-                  </Button>
-                  <Button variant="outline" onClick={handleLogout}>
-                    <LogOut className="ml-2 h-4 w-4" />
-                    خروج
-                  </Button>
-                </div>
+              <div>
+                <CardTitle className="text-3xl font-bold">پنل مدیریت کافه اوتن</CardTitle>
+                <CardDescription>از سایدبار برای پرش سریع بین بخش‌ها استفاده کنید</CardDescription>
               </div>
             </CardHeader>
           </Card>
@@ -585,7 +620,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <Card className="mb-6">
+          <Card id="admin-tax" className="mb-6 scroll-mt-24">
             <CardHeader>
               <CardTitle>پیام مالیات</CardTitle>
               <CardDescription>این پیام بالای منوی عمومی نمایش داده می‌شود</CardDescription>
@@ -600,11 +635,12 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="mb-6">
+          <Card id="admin-menu" className="mb-6 scroll-mt-24">
             <CardContent className="pt-6 space-y-3">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
+                  id="admin-search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="جستجوی آیتم یا دسته‌بندی..."
@@ -621,7 +657,11 @@ export default function DashboardPage() {
           {filteredGroupedEntries.map(([sectionId, section]) => {
             const collapsed = !!collapsedSections[sectionId];
             return (
-              <Card key={sectionId} className="mb-6">
+              <Card
+                key={sectionId}
+                id={`admin-section-${sectionId}`}
+                className="mb-6 scroll-mt-24"
+              >
                 <CardHeader>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-2">
@@ -749,6 +789,7 @@ export default function DashboardPage() {
               </Card>
             );
           })}
+          </div>
         </div>
       </div>
 
