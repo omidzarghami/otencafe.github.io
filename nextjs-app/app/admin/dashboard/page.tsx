@@ -793,7 +793,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
+      <div className={`fixed inset-x-0 bottom-0 z-40 border-t border-primary/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] ${sidebarOpen ? "pointer-events-none opacity-0" : ""}`}>
         <div className="container mx-auto max-w-7xl px-4 py-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
