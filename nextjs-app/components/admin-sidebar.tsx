@@ -2,12 +2,20 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Coffee,
   ExternalLink,
   LogOut,
-  Menu,
   MessageSquareText,
   Plus,
   Search,
@@ -49,144 +57,173 @@ function SidebarBody({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="shrink-0 border-b px-4 py-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Coffee className="h-4 w-4" />
+    <TooltipProvider>
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="shrink-0 space-y-3 px-4 py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <Coffee className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-semibold leading-tight">پنل ادمین</p>
+                <p className="truncate text-xs text-muted-foreground">کافه اوتن</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold leading-tight">پنل ادمین</p>
-              <p className="text-xs text-muted-foreground">کافه اوتن</p>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" asChild aria-label="مشاهده سایت">
+                    <Link href="/" target="_blank" onClick={onNavigateComplete}>
+                      <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">مشاهده سایت</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={onLogout} aria-label="خروج">
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">خروج</TooltipContent>
+              </Tooltip>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" asChild aria-label="مشاهده سایت">
-              <Link href="/" target="_blank" onClick={onNavigateComplete}>
-                <ExternalLink className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onLogout} aria-label="خروج">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {unsavedCount > 0 && (
-          <div className="mt-3 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-            {unsavedCount} تغییر ذخیره‌نشده
-          </div>
-        )}
-      </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4">
-        <p className="mb-2 px-2 text-xs font-medium text-muted-foreground">دسترسی سریع</p>
-        <div className="space-y-1">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => go("admin-tax")}
-          >
-            <MessageSquareText className="ml-2 h-4 w-4" />
-            پیام مالیات
-          </Button>
-          <Button variant="ghost" className="w-full justify-start" onClick={onFocusSearch}>
-            <Search className="ml-2 h-4 w-4" />
-            جستجو در منو
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => go("admin-menu")}
-          >
-            <UtensilsCrossed className="ml-2 h-4 w-4" />
-            همه دسته‌ها
-          </Button>
-          <Button variant="ghost" className="w-full justify-start" onClick={onAddSection}>
-            <Plus className="ml-2 h-4 w-4" />
-            دسته جدید
-          </Button>
-        </div>
-
-        <p className="mb-2 mt-6 px-2 text-xs font-medium text-muted-foreground">دسته‌بندی‌ها</p>
-        <div className="space-y-1 pb-4">
-          {sections.length === 0 ? (
-            <p className="px-2 text-sm text-muted-foreground">دسته‌ای نیست</p>
+          {unsavedCount > 0 ? (
+            <Badge
+              variant="outline"
+              className="w-full justify-center border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+            >
+              {unsavedCount} تغییر ذخیره‌نشده
+            </Badge>
           ) : (
-            sections.map((section) => {
-              const isActive = activeSectionId === section.id;
-              return (
-                <button
-                  key={section.id}
-                  type="button"
-                  onClick={() => go(`admin-section-${section.id}`)}
-                  className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  <span className="truncate text-right">{section.title}</span>
-                  <span
-                    className={`mr-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] ${
-                      isActive
-                        ? "bg-primary-foreground/20 text-primary-foreground"
-                        : section.hasChanges
-                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-                          : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {section.itemCount}
-                  </span>
-                </button>
-              );
-            })
+            <Badge variant="secondary" className="w-full justify-center font-normal">
+              همه چیز ذخیره شده
+            </Badge>
           )}
         </div>
-      </nav>
-    </div>
+
+        <Separator />
+
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="space-y-5 px-3 py-4">
+            <div>
+              <p className="mb-2 px-2 text-xs font-medium tracking-wide text-muted-foreground">
+                دسترسی سریع
+              </p>
+              <div className="space-y-0.5">
+                <Button
+                  variant="ghost"
+                  className="h-9 w-full justify-start"
+                  onClick={() => go("admin-tax")}
+                >
+                  <MessageSquareText className="ml-2 h-4 w-4" />
+                  پیام مالیات
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="h-9 w-full justify-start"
+                  onClick={onFocusSearch}
+                >
+                  <Search className="ml-2 h-4 w-4" />
+                  جستجو در منو
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="h-9 w-full justify-start"
+                  onClick={() => go("admin-menu")}
+                >
+                  <UtensilsCrossed className="ml-2 h-4 w-4" />
+                  همه دسته‌ها
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="h-9 w-full justify-start"
+                  onClick={onAddSection}
+                >
+                  <Plus className="ml-2 h-4 w-4" />
+                  دسته جدید
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 px-2 text-xs font-medium tracking-wide text-muted-foreground">
+                دسته‌بندی‌ها
+              </p>
+              <div className="space-y-0.5 pb-2">
+                {sections.length === 0 ? (
+                  <p className="px-2 text-sm text-muted-foreground">دسته‌ای نیست</p>
+                ) : (
+                  sections.map((section) => {
+                    const isActive = activeSectionId === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        type="button"
+                        onClick={() => go(`admin-section-${section.id}`)}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        <span className="truncate text-right">{section.title}</span>
+                        <Badge
+                          variant="secondary"
+                          className={`mr-2 shrink-0 border-0 px-1.5 py-0 text-[11px] ${
+                            isActive
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : section.hasChanges
+                                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                : ""
+                          }`}
+                        >
+                          {section.itemCount}
+                        </Badge>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
+    </TooltipProvider>
   );
 }
 
 export function AdminSidebar(props: AdminSidebarProps) {
   return (
     <>
-      <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] w-64 shrink-0 overflow-hidden rounded-xl border bg-card/95 shadow-sm backdrop-blur lg:block">
+      <aside className="sticky top-[4.5rem] hidden h-[calc(100vh-5.5rem)] w-64 shrink-0 overflow-hidden rounded-xl border bg-card shadow-sm lg:block">
         <SidebarBody {...props} />
       </aside>
 
-      <div className="lg:hidden">
-        <Sheet open={props.mobileOpen} onOpenChange={props.onMobileOpenChange}>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="fixed right-4 top-4 z-40 shadow-md"
-              aria-label="باز کردن منوی کناری"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="right"
-            className="z-[60] h-dvh w-[300px] gap-0 overflow-hidden p-0 sm:w-[320px]"
-          >
-            <SheetTitle className="sr-only">منوی پنل ادمین</SheetTitle>
-            <SidebarBody
-              {...props}
-              onNavigateComplete={() => props.onMobileOpenChange(false)}
-              onFocusSearch={() => {
-                props.onFocusSearch();
-                props.onMobileOpenChange(false);
-              }}
-              onAddSection={() => {
-                props.onAddSection();
-                props.onMobileOpenChange(false);
-              }}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
+      <Sheet open={props.mobileOpen} onOpenChange={props.onMobileOpenChange}>
+        <SheetContent
+          side="right"
+          className="z-[60] h-dvh w-[min(100vw-2rem,320px)] gap-0 overflow-hidden p-0"
+        >
+          <SheetTitle className="sr-only">منوی پنل ادمین</SheetTitle>
+          <SidebarBody
+            {...props}
+            onNavigateComplete={() => props.onMobileOpenChange(false)}
+            onFocusSearch={() => {
+              props.onFocusSearch();
+              props.onMobileOpenChange(false);
+            }}
+            onAddSection={() => {
+              props.onAddSection();
+              props.onMobileOpenChange(false);
+            }}
+          />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

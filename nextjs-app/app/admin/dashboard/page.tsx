@@ -22,6 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Save,
   Plus,
@@ -33,6 +35,8 @@ import {
   ChevronLeft,
   CheckCircle2,
   AlertCircle,
+  Menu,
+  X,
 } from "lucide-react";
 import {
   clearAdminDraft,
@@ -42,6 +46,7 @@ import {
   savePublishedOverrides,
 } from "@/lib/admin-draft-storage";
 import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminArrowNav } from "@/components/admin-arrow-nav";
 
 interface MenuItem {
   id: string;
@@ -131,6 +136,24 @@ export default function DashboardPage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const headerOffset = 96;
+      let current: string | null = null;
+      for (const section of sections) {
+        const el = document.getElementById(`admin-section-${section.id}`);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= headerOffset + 8) {
+          current = section.id;
+        }
+      }
+      setActiveSectionId(current);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [sections]);
 
   const loadTaxMessage = async () => {
     try {
@@ -568,17 +591,83 @@ export default function DashboardPage() {
     };
   });
 
+  const navTargets = [
+    "admin-tax",
+    "admin-menu",
+    ...filteredGroupedEntries.map(([sectionId]) => `admin-section-${sectionId}`),
+  ];
+
+  const getCurrentNavIndex = () => {
+    const headerOffset = 96;
+    let best = 0;
+    for (let i = 0; i < navTargets.length; i++) {
+      const el = document.getElementById(navTargets[i]);
+      if (!el) continue;
+      if (el.getBoundingClientRect().top <= headerOffset + 8) {
+        best = i;
+      }
+    }
+    return best;
+  };
+
+  const goPrevSection = () => {
+    const nextIndex = Math.max(0, getCurrentNavIndex() - 1);
+    scrollToTarget(navTargets[nextIndex]);
+  };
+
+  const goNextSection = () => {
+    const nextIndex = Math.min(navTargets.length - 1, getCurrentNavIndex() + 1);
+    scrollToTarget(navTargets[nextIndex]);
+  };
+
   return (
     <div
-      className="min-h-screen p-4 relative overflow-hidden"
+      className="relative min-h-screen"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='coffee-admin' x='0' y='0' width='400' height='400' patternUnits='userSpaceOnUse'%3E%3Cg opacity='0.06'%3E%3Ccircle cx='100' cy='100' r='30' fill='%238B4513'/%3E%3Cpath d='M50 200 Q75 180 100 200 T150 200' stroke='%238B4513' stroke-width='3' fill='none'/%3E%3Cpath d='M200 100 L220 80 L240 100 L240 130 L220 150 L200 130 Z' fill='%238B4513'/%3E%3Ccircle cx='300' cy='150' r='25' fill='%238B4513'/%3E%3Cpath d='M250 300 Q275 280 300 300 T350 300' stroke='%238B4513' stroke-width='3' fill='none'/%3E%3Cpath d='M100 300 L120 280 L140 300 L140 330 L120 350 L100 330 Z' fill='%238B4513'/%3E%3C/g%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23coffee-admin)'/%3E%3C/svg%3E")`,
         backgroundColor: "var(--background)",
       }}
     >
-      <div className="absolute inset-0 bg-background/95 backdrop-blur-sm"></div>
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-background/95 backdrop-blur-sm" />
+
+      <header className="sticky top-0 z-50 border-b border-border/80 bg-card/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/90">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 shrink-0 rounded-xl lg:hidden"
+            aria-label={sidebarOpen ? "بستن منو" : "باز کردن منو"}
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen((open) => !open)}
+          >
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-lg font-bold sm:text-2xl">پنل مدیریت کافه اوتن</h1>
+            <p className="truncate text-xs text-muted-foreground sm:text-sm">
+              منو را ویرایش کنید؛ پیش‌نویس در مرورگر ذخیره می‌شود
+            </p>
+          </div>
+
+          {hasUnsavedChanges ? (
+            <Badge
+              variant="outline"
+              className="shrink-0 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+            >
+              {unsavedCount} تغییر
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="hidden shrink-0 font-normal sm:inline-flex">
+              ذخیره شده
+            </Badge>
+          )}
+        </div>
+      </header>
+
       <div className="relative z-10">
-        <div className="mx-auto flex max-w-7xl gap-4 pb-28">
+        <div className="mx-auto flex max-w-7xl gap-4 px-4 py-4 pb-28">
           <AdminSidebar
             sections={sidebarSections}
             activeSectionId={activeSectionId}
@@ -591,19 +680,10 @@ export default function DashboardPage() {
             onMobileOpenChange={setSidebarOpen}
           />
 
-          <div className="min-w-0 flex-1 pt-12 lg:pt-0">
-          <Card className="mb-6">
-            <CardHeader>
-              <div>
-                <CardTitle className="text-3xl font-bold">پنل مدیریت کافه اوتن</CardTitle>
-                <CardDescription>از سایدبار برای پرش سریع بین بخش‌ها استفاده کنید</CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-
+          <div className="min-w-0 flex-1 space-y-4">
           {status && (
             <div
-              className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
+              className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${
                 status.tone === "success"
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                   : status.tone === "error"
@@ -620,7 +700,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <Card id="admin-tax" className="mb-6 scroll-mt-24">
+          <Card id="admin-tax" className="scroll-mt-24">
             <CardHeader>
               <CardTitle>پیام مالیات</CardTitle>
               <CardDescription>این پیام بالای منوی عمومی نمایش داده می‌شود</CardDescription>
@@ -635,8 +715,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card id="admin-menu" className="mb-6 scroll-mt-24">
-            <CardContent className="pt-6 space-y-3">
+          <Card id="admin-menu" className="scroll-mt-24">
+            <CardContent className="space-y-3 pt-6">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -647,6 +727,7 @@ export default function DashboardPage() {
                   className="w-full pr-10"
                 />
               </div>
+              <Separator />
               <Button onClick={() => setShowAddSectionDialog(true)} className="w-full" variant="outline">
                 <Plus className="ml-2 h-4 w-4" />
                 اضافه کردن دسته‌بندی جدید
@@ -660,7 +741,7 @@ export default function DashboardPage() {
               <Card
                 key={sectionId}
                 id={`admin-section-${sectionId}`}
-                className="mb-6 scroll-mt-24"
+                className="scroll-mt-24"
               >
                 <CardHeader>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -793,13 +874,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className={`fixed inset-x-0 bottom-0 z-40 border-t border-primary/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] ${sidebarOpen ? "pointer-events-none opacity-0" : ""}`}>
-        <div className="container mx-auto max-w-7xl px-4 py-3">
+      <AdminArrowNav
+        onPrev={goPrevSection}
+        onNext={goNextSection}
+        canPrev={navTargets.length > 1}
+        canNext={navTargets.length > 1}
+        hidden={sidebarOpen}
+      />
+
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-primary/40 bg-card/95 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] backdrop-blur supports-[backdrop-filter]:bg-card/90 ${
+          sidebarOpen ? "pointer-events-none opacity-0" : ""
+        }`}
+      >
+        <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {hasUnsavedChanges
-                ? `${unsavedCount} تغییر ذخیره نشده`
-                : "تغییری برای ذخیره نیست"}
+                ? `${unsavedCount} تغییر در مرورگر ذخیره شد — برای انتشار دکمه ذخیره را بزنید`
+                : "پیش‌نویس مرورگر خالی است"}
               <span className="mr-2 hidden text-xs opacity-70 sm:inline">Ctrl+S</span>
             </p>
             <div className="flex gap-2">
