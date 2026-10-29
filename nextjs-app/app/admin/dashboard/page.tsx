@@ -23,6 +23,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LogOut, Save, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  clearAdminDraft,
+  loadAdminDraft,
+  loadPublishedOverrides,
+  saveAdminDraft,
+  savePublishedOverrides,
+} from "@/lib/admin-draft-storage";
 
 interface MenuItem {
   id: string;
@@ -42,6 +49,7 @@ export default function DashboardPage() {
   const [taxMessage, setTaxMessage] = useState("");
   const [taxMessageChanged, setTaxMessageChanged] = useState(false);
   const [nameChanges, setNameChanges] = useState<Record<string, string>>({}); // sectionId or itemId -> new name
+  const [draftReady, setDraftReady] = useState(false);
   const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
   const [showAddItemDialog, setShowAddItemDialog] = useState<string | null>(null);
   const [showEditSectionNameDialog, setShowEditSectionNameDialog] = useState<string | null>(null);
@@ -58,10 +66,38 @@ export default function DashboardPage() {
     loadItems();
     loadSections();
     loadTaxMessage();
+
+    const draft = loadAdminDraft();
+    if (draft) {
+      setPriceChanges(draft.priceChanges || {});
+      setNameChanges(draft.nameChanges || {});
+      if (draft.taxMessageChanged && typeof draft.taxMessage === "string") {
+        setTaxMessage(draft.taxMessage);
+        setTaxMessageChanged(true);
+      }
+    }
+    setDraftReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    saveAdminDraft({
+      priceChanges,
+      nameChanges,
+      taxMessage,
+      taxMessageChanged,
+    });
+  }, [priceChanges, nameChanges, taxMessage, taxMessageChanged, draftReady]);
 
   const loadTaxMessage = async () => {
     try {
+      const draft = loadAdminDraft();
+      if (draft?.taxMessageChanged && typeof draft.taxMessage === "string") {
+        setTaxMessage(draft.taxMessage);
+        setTaxMessageChanged(true);
+        return;
+      }
+
       const response = await fetch("/api/settings/tax-message");
       if (response.ok) {
         const data = await response.json();
@@ -197,8 +233,34 @@ export default function DashboardPage() {
         })
       );
 
+      const previous = loadPublishedOverrides();
+      const nextPrices = { ...(previous?.prices || {}) };
+      const nextNames = { ...(previous?.names || {}) };
+      const nextSectionNames = { ...(previous?.sectionNames || {}) };
+
+      for (const [itemId, price] of Object.entries(priceChanges)) {
+        nextPrices[itemId] = price;
+      }
+
+      for (const [id, newName] of Object.entries(nameChanges)) {
+        if (groupedItemsForCheck[id]) {
+          nextSectionNames[id] = newName;
+        } else {
+          nextNames[id] = newName;
+        }
+      }
+
+      savePublishedOverrides({
+        prices: nextPrices,
+        names: nextNames,
+        sectionNames: nextSectionNames,
+        taxMessage: taxMessageChanged ? taxMessage : previous?.taxMessage,
+        updatedAt: Date.now(),
+      });
+
       setPriceChanges({});
       setNameChanges({});
+      clearAdminDraft();
       alert("تغییرات با موفقیت ذخیره شدند");
       await loadItems(); // بارگذاری مجدد برای نمایش تغییرات
     } catch (error) {
@@ -403,6 +465,12 @@ export default function DashboardPage() {
     groupedItems[item.sectionId].items.push(item);
   });
 
+  const unsavedCount =
+    Object.keys(priceChanges).length +
+    Object.keys(nameChanges).length +
+    (taxMessageChanged ? 1 : 0);
+  const hasUnsavedChanges = unsavedCount > 0;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -421,7 +489,7 @@ export default function DashboardPage() {
     }}>
       <div className="absolute inset-0 bg-background/95 backdrop-blur-sm"></div>
       <div className="relative z-10">
-      <div className="container mx-auto max-w-7xl">
+      <div className={`container mx-auto max-w-7xl ${hasUnsavedChanges ? "pb-28" : ""}`}>
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -463,22 +531,6 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        {(Object.keys(priceChanges).length > 0 || Object.keys(nameChanges).length > 0 || taxMessageChanged) && (
-          <Card className="mb-6 border-primary">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  {Object.keys(priceChanges).length + Object.keys(nameChanges).length + (taxMessageChanged ? 1 : 0)} تغییر ذخیره نشده
-                </p>
-                <Button onClick={handleSave} disabled={saving}>
-                  <Save className="ml-2 h-4 w-4" />
-                  {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* دکمه اضافه کردن دسته‌بندی جدید */}
         <Card className="mb-6">
@@ -607,6 +659,22 @@ export default function DashboardPage() {
         ))}
       </div>
       </div>
+
+      {hasUnsavedChanges && (
+        <div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
+          <div className="container mx-auto max-w-7xl px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                {unsavedCount} تغییر ذخیره نشده
+              </p>
+              <Button onClick={handleSave} disabled={saving}>
+                <Save className="ml-2 h-4 w-4" />
+                {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dialog برای اضافه کردن دسته‌بندی جدید */}
       <Dialog open={showAddSectionDialog} onOpenChange={setShowAddSectionDialog}>

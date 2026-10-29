@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowUp, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  loadPublishedOverrides,
+  mergePublishedIntoSections,
+} from "@/lib/admin-draft-storage";
 
 export default function Home() {
   const [menuSections, setMenuSections] = useState<MenuSectionType[]>([]);
@@ -29,10 +33,15 @@ export default function Home() {
 
   const loadTaxMessage = async () => {
     try {
+      const published = loadPublishedOverrides();
+      if (published?.taxMessage) {
+        setTaxMessage(published.taxMessage);
+      }
+
       const response = await fetch("/api/settings/tax-message");
       if (response.ok) {
         const data = await response.json();
-        setTaxMessage(data.taxMessage);
+        setTaxMessage(published?.taxMessage || data.taxMessage);
       }
     } catch (error) {
       console.error("Error loading tax message:", error);
@@ -64,7 +73,8 @@ export default function Home() {
       const response = await fetch("/api/menu/public");
       if (response.ok) {
         const data = await response.json();
-        setMenuSections(data.sections);
+        const published = loadPublishedOverrides();
+        setMenuSections(mergePublishedIntoSections(data.sections, published));
       }
     } catch (error) {
       console.error("Error loading menu:", error);
