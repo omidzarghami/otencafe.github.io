@@ -489,7 +489,7 @@ export default function DashboardPage() {
     }}>
       <div className="absolute inset-0 bg-background/95 backdrop-blur-sm"></div>
       <div className="relative z-10">
-      <div className={`container mx-auto max-w-7xl ${hasUnsavedChanges ? "pb-28" : ""}`}>
+      <div className="container mx-auto max-w-7xl pb-28">
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -586,9 +586,9 @@ export default function DashboardPage() {
                 <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-right w-[40%]">نام آیتم</TableHead>
-                      <TableHead className="text-right w-[30%]">قیمت فعلی (تومان)</TableHead>
-                      <TableHead className="text-right w-[30%]">قیمت جدید (تومان)</TableHead>
+                      <TableHead className="text-right w-[35%]">نام آیتم</TableHead>
+                      <TableHead className="text-right w-[25%]">قیمت فعلی (تومان)</TableHead>
+                      <TableHead className="text-right w-[40%]">قیمت جدید (تومان)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -629,14 +629,14 @@ export default function DashboardPage() {
                             <TableCell className="text-right">
                               {item.price.toLocaleString("fa-IR")}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right w-full">
                               <Input
                                 type="number"
                                 value={newPrice}
                                 onChange={(e) =>
                                   handlePriceChange(item.id, parseFloat(e.target.value) || 0)
                                 }
-                                className="w-full max-w-32 text-right"
+                                className="w-full text-right"
                                 min="0"
                                 step="0.1"
                               />
@@ -660,21 +660,21 @@ export default function DashboardPage() {
       </div>
       </div>
 
-      {hasUnsavedChanges && (
-        <div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
-          <div className="container mx-auto max-w-7xl px-4 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
-                {unsavedCount} تغییر ذخیره نشده
-              </p>
-              <Button onClick={handleSave} disabled={saving}>
-                <Save className="ml-2 h-4 w-4" />
-                {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-              </Button>
-            </div>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
+        <div className="container mx-auto max-w-7xl px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {hasUnsavedChanges
+                ? `${unsavedCount} تغییر ذخیره نشده`
+                : "تغییری برای ذخیره نیست"}
+            </p>
+            <Button onClick={handleSave} disabled={saving || !hasUnsavedChanges}>
+              <Save className="ml-2 h-4 w-4" />
+              {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+            </Button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Dialog برای اضافه کردن دسته‌بندی جدید */}
       <Dialog open={showAddSectionDialog} onOpenChange={setShowAddSectionDialog}>
