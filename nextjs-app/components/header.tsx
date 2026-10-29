@@ -23,7 +23,7 @@ export function Header() {
                 src="/assets/images/oten-cafe-logo.jpg"
                 alt="لوگو کافه اوتن"
                 fill
-                className="object-contain"
+                className="object-contain mix-blend-multiply"
                 sizes="128px"
               />
             </div>

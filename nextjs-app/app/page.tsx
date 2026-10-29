@@ -137,23 +137,16 @@ export default function Home() {
       <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col items-center justify-center gap-2 text-center">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               توسعه یافته توسط{" "}
-              <a
-                href="mailto:omidzarghami@gmail.com"
-                className="font-medium text-foreground hover:underline transition-colors"
-              >
-                Omid Zarghami
-              </a>
-              {" "}به عنوان{" "}
-              <span className="font-medium text-foreground">Developer</span>
+              <span className="font-medium text-foreground">امید ضرغامی</span>
             </p>
             <a
               href="mailto:omidzarghami@gmail.com"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               omidzarghami@gmail.com
-          </a>
+            </a>
           </div>
         </div>
       </footer>

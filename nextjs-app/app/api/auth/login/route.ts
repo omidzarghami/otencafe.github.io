@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // رمز عبور جدید: OtenCafe2024!
+    // رمز عبور جدید: G13faqk7CNW91c1IOMh7kfrGwfJS0KkS
     // در production باید hash را بررسی کنیم
-    const isValid = password === "OtenCafe2024!";
+    const isValid = password === "G13faqk7CNW91c1IOMh7kfrGwfJS0KkS";
 
     if (isValid) {
       // ریست کردن تلاش‌های ناموفق

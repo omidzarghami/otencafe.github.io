@@ -17,13 +17,12 @@ export const metadata: Metadata = {
   keywords: ["کافه", "قهوه", "منو", "کافه اوتن", "اسپرسو"],
   icons: {
     icon: [
-      { url: "/assets/images/oten-cafe-logo.jpg", type: "image/jpeg" },
-      { url: "/assets/images/otenlogo.webp", type: "image/webp" },
+      { url: "https://otencafe.ir/assets/images/oten-cafe-logo.jpg", type: "image/jpeg" },
     ],
     apple: [
-      { url: "/assets/images/oten-cafe-logo.jpg", type: "image/jpeg" },
+      { url: "https://otencafe.ir/assets/images/oten-cafe-logo.jpg", type: "image/jpeg" },
     ],
-    shortcut: "/assets/images/oten-cafe-logo.jpg",
+    shortcut: "https://otencafe.ir/assets/images/oten-cafe-logo.jpg",
   },
   openGraph: {
     title: "منوی کافه اوتن",
