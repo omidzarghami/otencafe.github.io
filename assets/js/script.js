@@ -1,33 +1,41 @@
-// function toggleDarkMode() {
-//     const body = document.body;
-//     body.classList.toggle('dark-mode');
-//     localStorage.setItem('darkMode', body.classList.contains('dark-mode'));
-// }
+function toggleDarkMode() {
+    const body = document.body;
+    body.classList.toggle('dark-mode');
+    const isDarkMode = body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
+    
+    // تغییر متن دکمه
+    const toggleButton = document.querySelector('.dark-mode-toggle');
+    if (toggleButton) {
+        toggleButton.textContent = isDarkMode ? 'حالت روشن' : 'حالت تاریک';
+    }
+}
 
-// const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-// const storedTheme = localStorage.getItem('darkMode');
+// بررسی تم ذخیره شده یا تنظیمات سیستم
+const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+const storedTheme = localStorage.getItem('darkMode');
 
-// if (storedTheme === 'true' || (storedTheme === null && prefersDarkScheme.matches)) {
-//     document.body.classList.add('dark-mode');
-// }
+if (storedTheme === 'true' || (storedTheme === null && prefersDarkScheme.matches)) {
+    document.body.classList.add('dark-mode');
+    const toggleButton = document.querySelector('.dark-mode-toggle');
+    if (toggleButton) {
+        toggleButton.textContent = 'حالت روشن';
+    }
+} else {
+    const toggleButton = document.querySelector('.dark-mode-toggle');
+    if (toggleButton) {
+        toggleButton.textContent = 'حالت تاریک';
+    }
+}
 
 document.querySelector('.hamburger-menu').addEventListener('click', function () {
-    document.querySelector('.menu').classList.toggle('active');
-    // document.querySelector(".hamburger-menu").style.display = "none";
-    // document.querySelector(".x").style.display = "block";
-
-    // function toggleElement(elementId) {
-    //     var element = document.querySelector(".hamburger-menu");
-    //     // اگر المان پنهان است، نمایش آن را تغییر دهید
-    //     if (element.style.display === "none") {
-    //         element.style.display = "block"; // یا هر نوع نمایش مطلوب دیگر
-    //     } else {
-    //         // در غیر این صورت، المان را پنهان کنید
-    //         element.style.display = "none";
-    //     }
-    // }
-
-
+    const menu = document.querySelector('.menu');
+    const nav = document.querySelector('nav');
+    
+    menu.classList.toggle('active');
+    if (nav) {
+        nav.classList.toggle('active');
+    }
 });
 
 
