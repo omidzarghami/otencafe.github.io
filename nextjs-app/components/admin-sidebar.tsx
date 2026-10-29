@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
   Tooltip,
@@ -58,7 +57,8 @@ function SidebarBody({
 
   return (
     <TooltipProvider>
-      <div className="flex h-full min-h-0 flex-col">
+      {/* Explicit LTR shell — page is RTL; this panel must not inherit it */}
+      <div dir="ltr" className="flex h-full min-h-0 flex-col text-left">
         <div className="shrink-0 space-y-3 px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-3">
@@ -108,8 +108,8 @@ function SidebarBody({
 
         <Separator />
 
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="space-y-5 px-3 py-4">
+        <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4">
+          <div className="space-y-5">
             <div>
               <p className="mb-2 px-2 text-xs font-medium tracking-wide text-muted-foreground">
                 دسترسی سریع
@@ -117,34 +117,34 @@ function SidebarBody({
               <div className="space-y-0.5">
                 <Button
                   variant="ghost"
-                  className="h-9 w-full justify-start"
+                  className="h-9 w-full justify-start gap-2"
                   onClick={() => go("admin-tax")}
                 >
-                  <MessageSquareText className="ml-2 h-4 w-4" />
+                  <MessageSquareText className="h-4 w-4" />
                   پیام مالیات
                 </Button>
                 <Button
                   variant="ghost"
-                  className="h-9 w-full justify-start"
+                  className="h-9 w-full justify-start gap-2"
                   onClick={onFocusSearch}
                 >
-                  <Search className="ml-2 h-4 w-4" />
+                  <Search className="h-4 w-4" />
                   جستجو در منو
                 </Button>
                 <Button
                   variant="ghost"
-                  className="h-9 w-full justify-start"
+                  className="h-9 w-full justify-start gap-2"
                   onClick={() => go("admin-menu")}
                 >
-                  <UtensilsCrossed className="ml-2 h-4 w-4" />
+                  <UtensilsCrossed className="h-4 w-4" />
                   همه دسته‌ها
                 </Button>
                 <Button
                   variant="ghost"
-                  className="h-9 w-full justify-start"
+                  className="h-9 w-full justify-start gap-2"
                   onClick={onAddSection}
                 >
-                  <Plus className="ml-2 h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                   دسته جدید
                 </Button>
               </div>
@@ -165,16 +165,16 @@ function SidebarBody({
                         key={section.id}
                         type="button"
                         onClick={() => go(`admin-section-${section.id}`)}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                        className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                           isActive
                             ? "bg-primary text-primary-foreground"
                             : "hover:bg-accent hover:text-accent-foreground"
                         }`}
                       >
-                        <span className="truncate text-right">{section.title}</span>
+                        <span className="min-w-0 flex-1 truncate text-left">{section.title}</span>
                         <Badge
                           variant="secondary"
-                          className={`mr-2 shrink-0 border-0 px-1.5 py-0 text-[11px] ${
+                          className={`shrink-0 border-0 px-1.5 py-0 text-[11px] ${
                             isActive
                               ? "bg-primary-foreground/20 text-primary-foreground"
                               : section.hasChanges
@@ -191,7 +191,7 @@ function SidebarBody({
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </nav>
       </div>
     </TooltipProvider>
   );
