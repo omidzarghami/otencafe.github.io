@@ -57,8 +57,7 @@ function SidebarBody({
 
   return (
     <TooltipProvider>
-      {/* Explicit LTR shell — page is RTL; this panel must not inherit it */}
-      <div dir="ltr" className="flex h-full min-h-0 flex-col text-left">
+      <div dir="rtl" className="flex h-full min-h-0 flex-col text-right">
         <div className="shrink-0 space-y-3 px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-3">
@@ -171,7 +170,9 @@ function SidebarBody({
                             : "hover:bg-accent hover:text-accent-foreground"
                         }`}
                       >
-                        <span className="min-w-0 flex-1 truncate text-left">{section.title}</span>
+                        <span className="min-w-0 flex-1 truncate text-right">
+                          {section.title}
+                        </span>
                         <Badge
                           variant="secondary"
                           className={`shrink-0 border-0 px-1.5 py-0 text-[11px] ${
@@ -200,13 +201,17 @@ function SidebarBody({
 export function AdminSidebar(props: AdminSidebarProps) {
   return (
     <>
-      <aside className="sticky top-[4.5rem] hidden h-[calc(100vh-5.5rem)] w-64 shrink-0 overflow-hidden rounded-xl border bg-card shadow-sm lg:block">
+      <aside
+        dir="rtl"
+        className="sticky top-[4.5rem] hidden h-[calc(100vh-5.5rem)] w-64 shrink-0 overflow-hidden rounded-xl border bg-card shadow-sm lg:block"
+      >
         <SidebarBody {...props} />
       </aside>
 
       <Sheet open={props.mobileOpen} onOpenChange={props.onMobileOpenChange}>
         <SheetContent
           side="right"
+          dir="rtl"
           className="z-[60] h-dvh w-[min(100vw-2rem,320px)] gap-0 overflow-hidden p-0"
         >
           <SheetTitle className="sr-only">منوی پنل ادمین</SheetTitle>
