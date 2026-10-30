@@ -42,6 +42,9 @@ import {
   clearAdminDraft,
   loadAdminDraft,
   loadPublishedOverrides,
+  mergePublishedIntoAdminItems,
+  mergePublishedIntoAdminSections,
+  sanitizeDraftAgainstBaseline,
   saveAdminDraft,
   savePublishedOverrides,
 } from "@/lib/admin-draft-storage";
@@ -103,17 +106,60 @@ export default function DashboardPage() {
 
   useEffect(() => {
     checkAuth();
-    loadItems();
-    loadSections();
-    loadTaxMessage();
-
-    const draft = loadAdminDraft();
-    if (draft) {
-      setPriceChanges(draft.priceChanges || {});
-      setNameChanges(draft.nameChanges || {});
-    }
-    setDraftReady(true);
+    void bootstrapAdminData();
   }, []);
+
+  const bootstrapAdminData = async () => {
+    await Promise.all([loadItems(), loadSections(), loadTaxMessage()]);
+
+    // Re-read after loads so draft is compared to the same baseline the site uses
+    // (API + published localStorage overrides).
+    const published = loadPublishedOverrides();
+    const response = await fetch("/api/menu/items");
+    let baselinePrices: Record<string, number> = {};
+    let baselineNames: Record<string, string> = {};
+    if (response.ok) {
+      const data = await response.json();
+      const merged = mergePublishedIntoAdminItems(data.items || [], published);
+      for (const item of merged) {
+        baselinePrices[item.id] = item.price;
+        baselineNames[item.id] = item.name;
+      }
+    }
+    const sectionsRes = await fetch("/api/menu/sections");
+    if (sectionsRes.ok) {
+      const data = await sectionsRes.json();
+      const mergedSections = mergePublishedIntoAdminSections(
+        data.sections || [],
+        published
+      );
+      for (const section of mergedSections) {
+        baselineNames[section.id] = section.title;
+      }
+    }
+
+    const taxRes = await fetch("/api/settings/tax-message");
+    let baselineTax = "";
+    if (taxRes.ok) {
+      const data = await taxRes.json();
+      baselineTax = published?.taxMessage || data.taxMessage;
+      setOriginalTaxMessage(baselineTax);
+      setTaxMessage(baselineTax);
+    }
+
+    const cleaned = sanitizeDraftAgainstBaseline(loadAdminDraft(), {
+      prices: baselinePrices,
+      names: baselineNames,
+      taxMessage: baselineTax,
+    });
+    setPriceChanges(cleaned.priceChanges);
+    setNameChanges(cleaned.nameChanges);
+    if (cleaned.taxMessageChanged && typeof cleaned.taxMessage === "string") {
+      setTaxMessage(cleaned.taxMessage);
+    }
+    saveAdminDraft(cleaned);
+    setDraftReady(true);
+  };
 
   useEffect(() => {
     if (!draftReady) return;
@@ -157,16 +203,13 @@ export default function DashboardPage() {
 
   const loadTaxMessage = async () => {
     try {
-      const draft = loadAdminDraft();
+      const published = loadPublishedOverrides();
       const response = await fetch("/api/settings/tax-message");
       if (response.ok) {
         const data = await response.json();
-        setOriginalTaxMessage(data.taxMessage);
-        if (draft?.taxMessageChanged && typeof draft.taxMessage === "string") {
-          setTaxMessage(draft.taxMessage);
-        } else {
-          setTaxMessage(data.taxMessage);
-        }
+        const baseline = published?.taxMessage || data.taxMessage;
+        setOriginalTaxMessage(baseline);
+        setTaxMessage(baseline);
       }
     } catch (error) {
       console.error("Error loading tax message:", error);
@@ -190,7 +233,8 @@ export default function DashboardPage() {
       const response = await fetch("/api/menu/items");
       if (response.ok) {
         const data = await response.json();
-        setItems(data.items);
+        const published = loadPublishedOverrides();
+        setItems(mergePublishedIntoAdminItems(data.items || [], published));
       } else if (response.status === 401) {
         router.push("/admin/login");
       }
@@ -207,7 +251,10 @@ export default function DashboardPage() {
       const response = await fetch("/api/menu/sections");
       if (response.ok) {
         const data = await response.json();
-        setSections(data.sections || []);
+        const published = loadPublishedOverrides();
+        setSections(
+          mergePublishedIntoAdminSections(data.sections || [], published)
+        );
       }
     } catch (error) {
       console.error("Error loading sections:", error);

@@ -94,3 +94,75 @@ export function mergePublishedIntoSections<
     })),
   }));
 }
+
+/** Same published localStorage layer the public menu uses — keep admin in sync. */
+export function mergePublishedIntoAdminItems<
+  T extends {
+    id: string;
+    name: string;
+    price: number;
+    sectionId: string;
+    sectionTitle: string;
+  },
+>(items: T[], overrides: PublishedOverrides | null): T[] {
+  if (!overrides) return items;
+
+  return items.map((item) => ({
+    ...item,
+    name: overrides.names[item.id] ?? item.name,
+    price: overrides.prices[item.id] ?? item.price,
+    sectionTitle: overrides.sectionNames[item.sectionId] ?? item.sectionTitle,
+  }));
+}
+
+export function mergePublishedIntoAdminSections<
+  T extends { id: string; title: string },
+>(sections: T[], overrides: PublishedOverrides | null): T[] {
+  if (!overrides) return sections;
+
+  return sections.map((section) => ({
+    ...section,
+    title: overrides.sectionNames[section.id] ?? section.title,
+  }));
+}
+
+/**
+ * Drop stale draft entries that no longer differ from the published baseline
+ * (prevents admin showing 90 while the site shows 180 from published overrides).
+ */
+export function sanitizeDraftAgainstBaseline(
+  draft: AdminDraft | null,
+  baseline: {
+    prices: Record<string, number>;
+    names: Record<string, string>;
+    taxMessage: string;
+  }
+): AdminDraft {
+  const priceChanges: Record<string, number> = {};
+  const nameChanges: Record<string, string> = {};
+
+  if (draft) {
+    for (const [id, price] of Object.entries(draft.priceChanges || {})) {
+      if (baseline.prices[id] === undefined || baseline.prices[id] !== price) {
+        priceChanges[id] = price;
+      }
+    }
+    for (const [id, name] of Object.entries(draft.nameChanges || {})) {
+      if (baseline.names[id] === undefined || baseline.names[id] !== name) {
+        nameChanges[id] = name;
+      }
+    }
+  }
+
+  const taxMessageChanged =
+    !!draft?.taxMessageChanged &&
+    typeof draft.taxMessage === "string" &&
+    draft.taxMessage !== baseline.taxMessage;
+
+  return {
+    priceChanges,
+    nameChanges,
+    taxMessage: taxMessageChanged ? draft?.taxMessage : baseline.taxMessage,
+    taxMessageChanged,
+  };
+}
