@@ -285,13 +285,19 @@ export default function DashboardPage() {
     if (!hasUnsavedChanges) return;
     setSaving(true);
     try {
-      for (const [itemId, price] of Object.entries(priceChanges)) {
-        const response = await fetch("/api/menu/update", {
+      if (Object.keys(priceChanges).length > 0) {
+        const response = await fetch("/api/menu/update-batch", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ itemId, price }),
+          body: JSON.stringify({ prices: priceChanges }),
         });
         if (!response.ok) throw new Error("price");
+        const result = await response.json().catch(() => ({}));
+        if (result && result.durable === false) {
+          console.warn(
+            "Price durable store not configured (UPSTASH_REDIS_REST_*). Prices may reset on cold start."
+          );
+        }
       }
 
       for (const [id, newName] of Object.entries(nameChanges)) {
@@ -583,7 +589,10 @@ export default function DashboardPage() {
     {} as Record<string, { title: string; items: MenuItem[] }>
   );
 
+  const seenItemIds = new Set<string>();
   items.forEach((item) => {
+    if (seenItemIds.has(item.id)) return;
+    seenItemIds.add(item.id);
     if (!groupedItems[item.sectionId]) {
       groupedItems[item.sectionId] = {
         title: nameChanges[item.sectionId] ?? item.sectionTitle,

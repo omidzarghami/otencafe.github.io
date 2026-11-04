@@ -40,7 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# data files (prices, etc.)
-/data/
+# runtime/local data — keep committed price baseline deployable
+/data/*
+!/data/prices.json
 
 .vercel

@@ -28,51 +28,50 @@ export async function GET() {
     const updatedMenuSections = menuSections
       .filter((section) => !deletedSections.has(section.id))
       .map((section) => {
-      const sectionTitle = sectionNameOverrides[section.id] ?? section.title;
-      const sectionCustomItems = getCustomItems(section.id) || [];
-      
-      return {
-        ...section,
-        title: sectionTitle,
-        items: [
-          ...section.items
-            .filter((item) => !deletedItems.has(item.id))
-            .map((item) => ({
-              ...item,
-              name: itemNameOverrides[item.id] ?? item.name,
-              price: priceOverrides[item.id] ?? item.price,
-            })),
-          ...sectionCustomItems
-            .filter((item) => !deletedItems.has(item.id))
-            .map((item) => ({
-              ...item,
-              name: itemNameOverrides[item.id] ?? item.name,
-              price: priceOverrides[item.id] ?? item.price,
-            })),
-        ],
-      };
-    });
-
-    // اضافه کردن دسته‌بندی‌های جدید (فقط دسته‌بندی‌ها و آیتم‌های حذف نشده)
-    const customSectionsUpdated = customSections
-      .filter((section) => !deletedSections.has(section.id))
-      .map((section) => {
-      const sectionTitle = sectionNameOverrides[section.id] ?? section.title;
-      return {
-        ...section,
-        title: sectionTitle,
-        items: section.items
-          .filter((item) => !deletedItems.has(item.id))
-          .map((item) => ({
+        const sectionTitle = sectionNameOverrides[section.id] ?? section.title;
+        const byId = new Map<string, (typeof section.items)[number]>();
+        for (const item of [...section.items, ...(getCustomItems(section.id) || [])]) {
+          if (deletedItems.has(item.id) || byId.has(item.id)) continue;
+          byId.set(item.id, {
             ...item,
             name: itemNameOverrides[item.id] ?? item.name,
             price: priceOverrides[item.id] ?? item.price,
-          })),
-      };
-    });
+          });
+        }
+        return {
+          ...section,
+          title: sectionTitle,
+          items: Array.from(byId.values()),
+        };
+      });
+
+    // اضافه کردن دسته‌بندی‌های جدید (بدون تکرار آیتم)
+    const customSectionsUpdated = customSections
+      .filter((section) => !deletedSections.has(section.id))
+      .map((section) => {
+        const sectionTitle = sectionNameOverrides[section.id] ?? section.title;
+        const byId = new Map<string, (typeof section.items)[number]>();
+        for (const item of [...(section.items || []), ...getCustomItems(section.id)]) {
+          if (deletedItems.has(item.id) || byId.has(item.id)) continue;
+          byId.set(item.id, {
+            ...item,
+            name: itemNameOverrides[item.id] ?? item.name,
+            price: priceOverrides[item.id] ?? item.price,
+          });
+        }
+        return {
+          ...section,
+          title: sectionTitle,
+          items: Array.from(byId.values()),
+        };
+      });
+
+    // Deduplicate custom section ids that collide with built-in sections
+    const builtInIds = new Set(updatedMenuSections.map((s) => s.id));
+    const uniqueCustom = customSectionsUpdated.filter((s) => !builtInIds.has(s.id));
 
     return NextResponse.json({
-      sections: [...updatedMenuSections, ...customSectionsUpdated],
+      sections: [...updatedMenuSections, ...uniqueCustom],
     });
   } catch (error) {
     console.error("Error loading menu:", error);

@@ -1,7 +1,11 @@
-// Simple in-memory storage for prices and settings
-// در production، بهتر است از Vercel KV یا یک دیتابیس استفاده کنید
+// In-memory + file storage for prices/settings.
+// On Vercel, /tmp is ephemeral — durable layer uses Upstash when configured.
 
 import type { MenuSection, MenuItem } from "./menu-data";
+import {
+  loadDurablePrices,
+  saveDurablePrices,
+} from "./durable-price-store";
 
 let priceCache: Record<string, number> = {};
 let settingsCache: Record<string, any> = {
@@ -41,24 +45,44 @@ export function setAllPrices(prices: Record<string, number>): void {
   priceCache = { ...prices };
 }
 
+function pricesPaths(path: typeof import("path")) {
+  const committed = path.join(process.cwd(), "data", "prices.json");
+  const runtime = path.join("/tmp", "oten-prices.json");
+  return { committed, runtime };
+}
+
 // برای sync با فایل (در صورت وجود)
 export async function syncWithFile(): Promise<void> {
   try {
     const fs = await import("fs/promises");
     const path = await import("path");
-    
-    // در Vercel از /tmp استفاده می‌کنیم، در local از data/
-    const isVercel = process.env.VERCEL === "1";
-    const PRICES_FILE = isVercel
-      ? path.join("/tmp", "prices.json")
-      : path.join(process.cwd(), "data", "prices.json");
-    
+    const { committed, runtime } = pricesPaths(path);
+
+    // 1) Baseline from committed deployment file
+    let merged: Record<string, number> = { ...priceCache };
     try {
-      const data = await fs.readFile(PRICES_FILE, "utf-8");
-      const prices = JSON.parse(data);
-      priceCache = prices;
+      const data = await fs.readFile(committed, "utf-8");
+      merged = { ...merged, ...JSON.parse(data) };
     } catch {
-      // فایل وجود ندارد، از cache استفاده می‌کنیم
+      // no committed file yet
+    }
+
+    // 2) Overlay runtime writes from this instance (/tmp)
+    try {
+      const data = await fs.readFile(runtime, "utf-8");
+      merged = { ...merged, ...JSON.parse(data) };
+    } catch {
+      // no runtime file
+    }
+
+    // 3) Durable store (Upstash) — wins over ephemeral layers
+    const durable = await loadDurablePrices();
+    if (durable && Object.keys(durable).length > 0) {
+      merged = { ...merged, ...durable };
+    }
+
+    if (Object.keys(merged).length > 0) {
+      priceCache = merged;
     }
   } catch {
     // در محیطی که fs در دسترس نیست (مثل edge runtime)
@@ -70,13 +94,9 @@ export async function saveToFile(): Promise<void> {
   try {
     const fs = await import("fs/promises");
     const path = await import("path");
-    
-    // در Vercel از /tmp استفاده می‌کنیم، در local از data/
     const isVercel = process.env.VERCEL === "1";
-    const PRICES_FILE = isVercel
-      ? path.join("/tmp", "prices.json")
-      : path.join(process.cwd(), "data", "prices.json");
-    
+    const { committed, runtime } = pricesPaths(path);
+
     if (!isVercel) {
       const dataDir = path.join(process.cwd(), "data");
       try {
@@ -84,12 +104,19 @@ export async function saveToFile(): Promise<void> {
       } catch {
         await fs.mkdir(dataDir, { recursive: true });
       }
+      await fs.writeFile(committed, JSON.stringify(priceCache, null, 2), "utf-8");
     }
-    
-    await fs.writeFile(PRICES_FILE, JSON.stringify(priceCache, null, 2), "utf-8");
+
+    // Always also write runtime copy (works on Vercel until instance recycles)
+    try {
+      await fs.writeFile(runtime, JSON.stringify(priceCache, null, 2), "utf-8");
+    } catch {
+      // /tmp may be unavailable in some runtimes
+    }
+
+    await saveDurablePrices(priceCache);
   } catch (error) {
     console.error("Error saving prices:", error);
-    // در محیطی که fs در دسترس نیست
   }
 }
 
@@ -161,7 +188,13 @@ export function addCustomItem(sectionId: string, item: MenuItem): void {
   if (!customItemsCache[sectionId]) {
     customItemsCache[sectionId] = [];
   }
-  customItemsCache[sectionId].push(item);
+  const list = customItemsCache[sectionId];
+  const idx = list.findIndex((existing) => existing.id === item.id);
+  if (idx >= 0) {
+    list[idx] = item;
+  } else {
+    list.push(item);
+  }
 }
 
 export function removeCustomItem(sectionId: string, itemId: string): void {

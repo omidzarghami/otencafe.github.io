@@ -22,23 +22,16 @@ export async function GET() {
   const sectionNameOverrides = getAllSectionNameOverrides();
   const deletedSections = getDeletedSections();
 
-  // ترکیب دسته‌بندی‌های اصلی و سفارشی (فقط دسته‌بندی‌های حذف نشده)
-  const allSections = [
-    ...menuSections
-      .filter((section) => !deletedSections.has(section.id))
-      .map((section) => ({
-        id: section.id,
-        title: sectionNameOverrides[section.id] ?? section.title,
-      })),
-    ...customSections
-      .filter((section) => !deletedSections.has(section.id))
-      .map((section) => ({
-        id: section.id,
-        title: sectionNameOverrides[section.id] ?? section.title,
-      })),
-  ];
+  const byId = new Map<string, { id: string; title: string }>();
+  for (const section of [...menuSections, ...customSections]) {
+    if (deletedSections.has(section.id) || byId.has(section.id)) continue;
+    byId.set(section.id, {
+      id: section.id,
+      title: sectionNameOverrides[section.id] ?? section.title,
+    });
+  }
 
-  return NextResponse.json({ sections: allSections });
+  return NextResponse.json({ sections: Array.from(byId.values()) });
 }
 
 export async function POST(request: NextRequest) {
