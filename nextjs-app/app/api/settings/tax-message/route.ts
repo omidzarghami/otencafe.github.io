@@ -32,14 +32,14 @@ async function saveSettingsToFile(settings: Record<string, any>) {
 
 export async function GET() {
   try {
-    // Sync با فایل
+    const { getAllSettings, setSetting, syncWithFile } = await import("@/lib/price-storage");
+    await syncWithFile();
+
     const settings = await loadSettingsFromFile();
     if (settings.taxMessage) {
-      const { setSetting } = await import("@/lib/price-storage");
       setSetting("taxMessage", settings.taxMessage);
     }
-    
-    const { getAllSettings } = await import("@/lib/price-storage");
+
     const taxMessage = getAllSettings().taxMessage || "قیمت ها بدون احتساب مالیات بر افزایش افزوده می باشد.";
     return NextResponse.json({ taxMessage });
   } catch (error) {
@@ -68,11 +68,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // به‌روزرسانی در cache
-    const { setSetting } = await import("@/lib/price-storage");
+    // به‌روزرسانی در cache + Supabase
+    const { setSetting, saveToFile, syncWithFile } = await import("@/lib/price-storage");
+    await syncWithFile();
     setSetting("taxMessage", taxMessage);
-    
-    // ذخیره در فایل
+    await saveToFile();
+
+    // ذخیره در فایل محلی (در صورت امکان)
     const settings = await loadSettingsFromFile();
     settings.taxMessage = taxMessage;
     await saveSettingsToFile(settings);

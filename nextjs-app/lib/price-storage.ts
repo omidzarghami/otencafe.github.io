@@ -1,11 +1,15 @@
 // In-memory + file storage for prices/settings.
-// On Vercel, /tmp is ephemeral — durable layer uses Upstash when configured.
+// Durable layer: Supabase (preferred), then Upstash, then /tmp.
 
 import type { MenuSection, MenuItem } from "./menu-data";
 import {
   loadDurablePrices,
   saveDurablePrices,
 } from "./durable-price-store";
+import {
+  loadMenuStateFromSupabase,
+  saveMenuStateToSupabase,
+} from "./supabase-menu-store";
 
 let priceCache: Record<string, number> = {};
 let settingsCache: Record<string, any> = {
@@ -51,6 +55,47 @@ function pricesPaths(path: typeof import("path")) {
   return { committed, runtime };
 }
 
+function snapshotMenuState() {
+  return {
+    prices: { ...priceCache },
+    settings: { ...settingsCache },
+    customSections: [...customSectionsCache],
+    customItems: { ...customItemsCache },
+    sectionNameOverrides: { ...sectionNameOverrides },
+    itemNameOverrides: { ...itemNameOverrides },
+    deletedItems: Array.from(deletedItems),
+    deletedSections: Array.from(deletedSections),
+  };
+}
+
+function applyMenuState(state: Awaited<ReturnType<typeof loadMenuStateFromSupabase>>) {
+  if (!state) return;
+  if (state.prices && Object.keys(state.prices).length > 0) {
+    priceCache = { ...priceCache, ...state.prices };
+  }
+  if (state.settings && Object.keys(state.settings).length > 0) {
+    settingsCache = { ...settingsCache, ...state.settings };
+  }
+  if (Array.isArray(state.customSections)) {
+    customSectionsCache = state.customSections as MenuSection[];
+  }
+  if (state.customItems) {
+    customItemsCache = state.customItems as Record<string, MenuItem[]>;
+  }
+  if (state.sectionNameOverrides) {
+    sectionNameOverrides = { ...state.sectionNameOverrides };
+  }
+  if (state.itemNameOverrides) {
+    itemNameOverrides = { ...state.itemNameOverrides };
+  }
+  if (Array.isArray(state.deletedItems)) {
+    deletedItems = new Set(state.deletedItems);
+  }
+  if (Array.isArray(state.deletedSections)) {
+    deletedSections = new Set(state.deletedSections);
+  }
+}
+
 // برای sync با فایل (در صورت وجود)
 export async function syncWithFile(): Promise<void> {
   try {
@@ -75,7 +120,7 @@ export async function syncWithFile(): Promise<void> {
       // no runtime file
     }
 
-    // 3) Durable store (Upstash) — wins over ephemeral layers
+    // 3) Upstash overlay (optional legacy)
     const durable = await loadDurablePrices();
     if (durable && Object.keys(durable).length > 0) {
       merged = { ...merged, ...durable };
@@ -83,6 +128,15 @@ export async function syncWithFile(): Promise<void> {
 
     if (Object.keys(merged).length > 0) {
       priceCache = merged;
+    }
+
+    // 4) Supabase wins (survives cold starts + deploys)
+    const fromSupabase = await loadMenuStateFromSupabase();
+    if (fromSupabase?.prices && Object.keys(fromSupabase.prices).length > 0) {
+      priceCache = { ...priceCache, ...fromSupabase.prices };
+    }
+    if (fromSupabase?.settings) {
+      settingsCache = { ...settingsCache, ...fromSupabase.settings };
     }
   } catch {
     // در محیطی که fs در دسترس نیست (مثل edge runtime)
@@ -115,6 +169,7 @@ export async function saveToFile(): Promise<void> {
     }
 
     await saveDurablePrices(priceCache);
+    await saveMenuStateToSupabase(snapshotMenuState());
   } catch (error) {
     console.error("Error saving prices:", error);
   }
@@ -238,12 +293,12 @@ export async function syncCustomDataFromFile(): Promise<void> {
   try {
     const fs = await import("fs/promises");
     const path = await import("path");
-    
+
     const isVercel = process.env.VERCEL === "1";
     const CUSTOM_DATA_FILE = isVercel
       ? path.join("/tmp", "custom-menu.json")
       : path.join(process.cwd(), "data", "custom-menu.json");
-    
+
     try {
       const data = await fs.readFile(CUSTOM_DATA_FILE, "utf-8");
       const customData = JSON.parse(data);
@@ -256,6 +311,9 @@ export async function syncCustomDataFromFile(): Promise<void> {
     } catch {
       // فایل وجود ندارد
     }
+
+    const fromSupabase = await loadMenuStateFromSupabase();
+    applyMenuState(fromSupabase);
   } catch {
     // در محیطی که fs در دسترس نیست
   }
@@ -265,12 +323,12 @@ export async function saveCustomDataToFile(): Promise<void> {
   try {
     const fs = await import("fs/promises");
     const path = await import("path");
-    
+
     const isVercel = process.env.VERCEL === "1";
     const CUSTOM_DATA_FILE = isVercel
       ? path.join("/tmp", "custom-menu.json")
       : path.join(process.cwd(), "data", "custom-menu.json");
-    
+
     if (!isVercel) {
       const dataDir = path.join(process.cwd(), "data");
       try {
@@ -279,7 +337,7 @@ export async function saveCustomDataToFile(): Promise<void> {
         await fs.mkdir(dataDir, { recursive: true });
       }
     }
-    
+
     const customData = {
       sections: customSectionsCache,
       items: customItemsCache,
@@ -288,8 +346,9 @@ export async function saveCustomDataToFile(): Promise<void> {
       deletedItems: Array.from(deletedItems),
       deletedSections: Array.from(deletedSections),
     };
-    
+
     await fs.writeFile(CUSTOM_DATA_FILE, JSON.stringify(customData, null, 2), "utf-8");
+    await saveMenuStateToSupabase(snapshotMenuState());
   } catch (error) {
     console.error("Error saving custom data:", error);
   }
