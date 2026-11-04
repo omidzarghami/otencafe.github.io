@@ -295,7 +295,7 @@ export default function DashboardPage() {
         const result = await response.json().catch(() => ({}));
         if (result && result.durable === false) {
           console.warn(
-            "Price durable store not configured (UPSTASH_REDIS_REST_*). Prices may reset on cold start."
+            "Supabase durable store not configured. Prices may reset on cold start."
           );
         }
       }

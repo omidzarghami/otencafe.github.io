@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
       updated,
       prices: getAllPrices(),
       durable: !!(
-        process.env.UPSTASH_REDIS_REST_URL &&
-        process.env.UPSTASH_REDIS_REST_TOKEN
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        (process.env.MENU_WRITE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY)
       ),
     });
   } catch (error) {
